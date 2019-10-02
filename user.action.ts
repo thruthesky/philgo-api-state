@@ -4,6 +4,9 @@ export class UserProfile {
   static readonly type = '[User] Profile';
   idx: string;
   constructor(public user: ApiUserInformation) {
+    if (user === null) {
+      return;
+    }
     this.idx = user.idx;
   }
 }
