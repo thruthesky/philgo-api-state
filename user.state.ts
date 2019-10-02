@@ -2,6 +2,7 @@ import { State, Action, StateContext, Store } from '@ngxs/store';
 import { ApiUserInformation } from 'libs/philgo-api/philgo-api-interface';
 import { UserProfile } from './user.action';
 import { StorageService } from '@libs/v5-storage/storage.service';
+import { AppService } from '@src/app/app.service';
 
 
 
@@ -13,9 +14,17 @@ export class UserState {
 
 
   constructor(
+    private a: AppService,
     private storageService: StorageService
   ) {
-    console.log('this: ', this);
+  }
+
+  /**
+   * Initialize user state
+   * @param ctx context
+   */
+  ngxsOnInit(ctx: StateContext<ApiUserInformation>) {
+    ctx.patchState(this.a.user());
   }
 
   /**
@@ -28,7 +37,8 @@ export class UserState {
     ctx.patchState(userObj as any);
   }
 
-  
+
+
 }
 
 
