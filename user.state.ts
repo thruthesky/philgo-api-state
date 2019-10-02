@@ -1,4 +1,4 @@
-import { State, Action, StateContext } from '@ngxs/store';
+import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { ApiUserInformation } from 'libs/philgo-api/philgo-api-interface';
 import { UserProfile, UserLogin, UserLogout, UserRegister, UserProfileUpdate } from './user.action';
 import { StorageService } from '@libs/v5-storage/storage.service';
@@ -10,7 +10,7 @@ import { PhilGoApiService } from '@libs/philgo-api/philgo-api.service';
   name: 'user',
   defaults: {} as any
 })
-export class UserState {
+export class UserState implements NgxsOnInit {
 
 
   constructor(
@@ -18,6 +18,11 @@ export class UserState {
     private philgo: PhilGoApiService
   ) {
     // console.log('this: ', this);
+  }
+
+  ngxsOnInit(ctx: StateContext<ApiUserInformation>) {
+    const user = this.storageService.get('user');
+    this.profile(ctx, user);
   }
 
   /**
@@ -48,7 +53,10 @@ export class UserState {
         // ctx.patchState(res);                    // also patch state
         this.profile(ctx, { user: res } as any);
       },
-      e => alert(e.message)
+      e => {
+        alert(e.message);
+        console.log('Error on register!', e);
+      }
     );
 
   }
@@ -67,7 +75,10 @@ export class UserState {
         // ctx.patchState(res);                    // also patch state
         this.profile(ctx, { user: res } as any);
       },
-      e => alert(e.message));
+      e => {
+        alert(e.message);
+        console.log('Error on login!', e);
+      });
 
   }
 
@@ -86,7 +97,10 @@ export class UserState {
         this.storageService.set('user', res);
         this.profile(ctx, { user: res } as any);
       },
-      e => alert(e.message)
+      e => {
+        alert(e.message);
+        console.log('Error on User Update!', e);
+      }
     );
   }
 
