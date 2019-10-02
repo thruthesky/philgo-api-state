@@ -10,3 +10,10 @@ export class UserProfile {
     this.idx = user.idx;
   }
 }
+
+
+export class UserLogin {
+  static readonly type = '[User] Login';
+  constructor(public login: any) { }
+}
+
