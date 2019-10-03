@@ -45,7 +45,7 @@ export class ForumState implements NgxsOnInit {
     this.philgo.postSearch(searchOptions).subscribe(
       res => {
 
-        // add post to state
+        console.log(res);
 
       },
       e => {
