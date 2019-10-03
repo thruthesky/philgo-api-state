@@ -2,7 +2,7 @@ import { State, Action, StateContext } from '@ngxs/store';
 import { ApiUserInformation } from 'libs/philgo-api/philgo-api-interface';
 import { UserProfile, UserLogin } from './user.action';
 import { StorageService } from '@libs/v5-storage/storage.service';
-import { AppService } from '@src/app/app.service';
+import { AppService } from '@libs/app.service';
 import { tap } from 'rxjs/operators';
 
 @State<ApiUserInformation>({
