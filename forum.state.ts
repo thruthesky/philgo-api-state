@@ -16,6 +16,9 @@ export interface ForumStateModel {
   page_no: {
     [key: string]: number;
   };
+  noMorePost: {
+    [key: string]: boolean;
+  };
   postOnView: ApiPost;
 }
 
@@ -26,6 +29,7 @@ export interface ForumStateModel {
     forumList: {},
     loading: {},
     page_no: {},
+    noMorePost: {},
     postOnView: {}
   } as any
 })
@@ -115,6 +119,12 @@ export class ForumState {
       .pipe(
         tap(res => {
           // console.log(res);
+          if ( res.posts.length < searchOption.limit ) {
+            ctx.patchState({
+              noMorePost: { [idCategory]: true }
+            });
+          }
+
           res.posts.forEach(
             post => {
               this.addPost(ctx, post, idCategory);
