@@ -7,11 +7,10 @@ import { PhilGoApiService } from '@libs/philgo-api/philgo-api.service';
 
 
 @State<ApiUserInformation>({
-  name: 'user',
-  defaults: {} as any
+  name: 'user',         // 'user' state.
+  defaults: {} as any   // Set user object. Not atction.
 })
 export class UserState implements NgxsOnInit {
-
 
   constructor(
     private storageService: StorageService,
@@ -27,6 +26,7 @@ export class UserState implements NgxsOnInit {
 
   /**
    * Saves user profile information into the state
+   * @note This method will be called whenever profile updates.
    * @param ctx ctx
    * @param { user } `UserProfile` class which holds the `user` payload.
    */
@@ -114,7 +114,58 @@ export class UserState implements NgxsOnInit {
     ctx.setState({} as any);
   }
 
+  /**
+   * Register to philgo backend then set user info to State and localStorage if success.
+   *
+   * @param ctx State Context
+   * @param { user } `UserRegister` Class containing the `user` payload.
+   */
+  @Action(UserRegister)
+  register(ctx: StateContext<ApiUserInformation>, { user }: UserRegister) {
 
+    return this.a.philgo.register(user)
+      .pipe(
+        tap(res => {
+          this.profile(ctx, { user: res });
+        })
+      );
+  }
+
+  /**
+   * Update user profile information to backend then save to state and localstorage if success.
+   *
+   * @param ctx StateContext
+   * @param { user } `UserProfileUpdate` Class containing the `user` payload.
+   */
+  @Action(UserProfileUpdate) profileUpdate(ctx: StateContext<ApiUserInformation>, { user }: UserProfileUpdate) {
+    const localUser = this.a.get('user');
+
+    user['idx_member'] = localUser.idx;         // do this since `philgo.addLogin()` is not fixed yet.
+    user.session_id = localUser.session_id;     // do this since `philgo.addLogin()` is not fixed yet.
+
+    return this.a.philgo.profileUpdate(user)
+      .pipe(
+        tap(res => {
+          this.profile(ctx, { user: res });
+        })
+      );
+  }
+
+  /**
+   * Resets the state and Set null value for user on localStorage.
+   *
+   * @param ctx state context
+   */
+  @Action(UserLogout) logout(ctx: StateContext<ApiUserInformation>) {
+    this.profile(ctx, { user: {} } as any);
+  }
+
+  loadUserProfileAction() {
+    return this.a.get('user');
+  }
+  saveUserProfileAction(user: ApiUserInformation) {
+    this.a.set('user', user);
+  }
 
 }
 

@@ -1,7 +1,7 @@
 import {
-  ApiLoginRequest,
-  ApiRegisterRequest,
   ApiUserInformation,
+  ApiRegisterRequest,
+  ApiLoginRequest,
   ApiProfileUpdateRequest
 } from 'libs/philgo-api/philgo-api-interface';
 
