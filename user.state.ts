@@ -1,7 +1,6 @@
 import { State, Action, StateContext } from '@ngxs/store';
 import { ApiUserInformation } from 'libs/philgo-api/philgo-api-interface';
 import { UserProfile, UserLogin, UserProfileUpdate, UserRegister, UserLogout } from './user.action';
-// import { StorageService } from '@libs/v5-storage/storage.service';
 import { AppService } from '@libs/app.service';
 import { tap } from 'rxjs/operators';
 
@@ -13,7 +12,6 @@ export class UserState {
 
   constructor(
     private a: AppService,
-    // private storageService: StorageService
   ) {
   }
 
