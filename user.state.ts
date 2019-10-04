@@ -57,8 +57,7 @@ export class UserState {
           // 아래의 Action 을 통해서 회원 정보를 localStorage 에 저장한다.
           // console.log(`[UserLogin] action dispatched & Philgo login api has done with: `, user.idx, user.email, user.nickname);
           ctx.dispatch(new UserProfile(user));
-        })
-      ).subscribe();
+        }));
   }
 
   /**
