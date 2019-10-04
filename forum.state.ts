@@ -145,7 +145,6 @@ export class ForumState {
     // if not
     return this.a.philgo.postLoad(idx).pipe(
       tap(post => {
-        const idCategory = this.a.generateIdCategory(post as any);
         this.pre(post);
         ctx.patchState({
           postOnView: post
