@@ -40,7 +40,7 @@ export class UserState {
     const user: ApiUserInformation = action.user;
     this.saveUserProfileAction(user);
     ctx.setState(user);
-    console.log('[UserProfile] profile updated on profile action: ', user.idx, user.email, user.nickname );
+    // console.log('[UserProfile] profile updated on profile action: ', user.idx, user.email, user.nickname );
   }
 
   /**
@@ -52,13 +52,13 @@ export class UserState {
   login(ctx: StateContext<ApiUserInformation>, action: UserLogin) {
     return this.a.philgo.login({ uid: action.login.uid, password: action.login.password })
       .pipe(
-        tap( user => {
+        tap(user => {
           // 아래와 같이 ctx 로 다시 Action 을 dispatch 할 수 있다.
           // 아래의 Action 을 통해서 회원 정보를 localStorage 에 저장한다.
-          console.log(`[UserLogin] action dispatched & Philgo login api has done with: `, user.idx, user.email, user.nickname);
+          // console.log(`[UserLogin] action dispatched & Philgo login api has done with: `, user.idx, user.email, user.nickname);
           ctx.dispatch(new UserProfile(user));
         })
-      );
+      ).subscribe();
   }
 
   /**
@@ -70,16 +70,12 @@ export class UserState {
   @Action(UserRegister)
   register(ctx: StateContext<ApiUserInformation>, { user }: UserRegister) {
 
-    this.a.philgo.register(user).subscribe(
-      res => {
-        this.profile(ctx, { user: res } as any);
-      },
-      e => {
-        alert(e.message);
-        console.log('Error on register!', e);
-      }
-    );
-
+    return this.a.philgo.register(user)
+      .pipe(
+        tap(res => {
+          this.profile(ctx, { user: res });
+        })
+      );
   }
 
   /**
@@ -94,17 +90,13 @@ export class UserState {
     user['idx_member'] = localUser.idx;         // do this since `philgo.addLogin()` is not fixed yet.
     user.session_id = localUser.session_id;     // do this since `philgo.addLogin()` is not fixed yet.
 
-    this.a.philgo.profileUpdate(user).subscribe(
-      res => {
-        this.profile(ctx, { user: res } as any);
-      },
-      e => {
-        alert(e.message);
-        console.log('Error on User Update!', e);
-      }
-    );
+    return this.a.philgo.profileUpdate(user)
+      .pipe(
+        tap(res => {
+          this.profile(ctx, { user: res });
+        })
+      );
   }
-
 
   /**
    * Resets the state and Set null value for user on localStorage.
@@ -112,8 +104,7 @@ export class UserState {
    * @param ctx state context
    */
   @Action(UserLogout) logout(ctx: StateContext<ApiUserInformation>) {
-    this.storageService.set('user', {});
-    ctx.setState({} as any);
+    this.profile(ctx, { user: {} } as any);
   }
 
   loadUserProfileAction() {
