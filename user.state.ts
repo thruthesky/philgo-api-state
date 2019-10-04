@@ -1,8 +1,8 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { ApiUserInformation } from 'libs/philgo-api/philgo-api-interface';
 import { UserProfile, UserLogin, UserLogout, UserRegister, UserProfileUpdate } from './user.action';
-import { StorageService } from '@libs/v5-storage/storage.service';
-import { PhilGoApiService } from '@libs/philgo-api/philgo-api.service';
+import { tap } from 'rxjs/operators';
+import { AppService } from '@libs/app.service';
 
 
 
@@ -13,15 +13,14 @@ import { PhilGoApiService } from '@libs/philgo-api/philgo-api.service';
 export class UserState implements NgxsOnInit {
 
   constructor(
-    private storageService: StorageService,
-    private philgo: PhilGoApiService
+    private a: AppService
   ) {
     // console.log('this: ', this);
   }
 
   ngxsOnInit(ctx: StateContext<ApiUserInformation>) {
-    const user = this.storageService.get('user');
-    this.profile(ctx, user);
+    const localUser = this.a.get('user');
+    this.profile(ctx, { user: localUser } as any);
   }
 
   /**
@@ -32,33 +31,8 @@ export class UserState implements NgxsOnInit {
    */
   @Action(UserProfile) profile(ctx: StateContext<ApiUserInformation>, { user }: UserProfile) {
     // if no user, maybe the app is booting
-    if (!user) {
-      user = this.storageService.get('user');
-    }
+    this.a.set('user', user);
     ctx.patchState(user);
-  }
-
-  /**
-   * Register to philgo backend then set user info to State and localStorage if success.
-   *
-   * @param ctx State Context
-   * @param { user } `UserRegister` Class containing the `user` payload.
-   */
-  @Action(UserRegister)
-  register(ctx: StateContext<ApiUserInformation>, { user }: UserRegister) {
-
-    this.philgo.register(user).subscribe(       // register to philgo
-      res => {
-        this.storageService.set('user', res);   // set to local storage
-        // ctx.patchState(res);                    // also patch state
-        this.profile(ctx, { user: res } as any);
-      },
-      e => {
-        alert(e.message);
-        console.log('Error on register!', e);
-      }
-    );
-
   }
 
   /**
@@ -69,49 +43,13 @@ export class UserState implements NgxsOnInit {
    */
   @Action(UserLogin) login(ctx: StateContext<ApiUserInformation>, { user }: UserLogin) {
 
-    this.philgo.login(user).subscribe(          // login to philgo
-      res => {
-        this.storageService.set('user', res);   // set to localStorage if success
-        // ctx.patchState(res);                    // also patch state
+    return this.a.philgo.login(user).pipe(
+      tap(res => {
+        console.log(res);
         this.profile(ctx, { user: res } as any);
-      },
-      e => {
-        alert(e.message);
-        console.log('Error on login!', e);
-      });
-
-  }
-
-  /**
-   * Update user profile information to backend then save to state and localstorage if success.
-   *
-   * @param ctx StateContext
-   * @param { user } `UserProfileUpdate` Class containing the `user` payload.
-   */
-  @Action(UserProfileUpdate) profileUpdate(ctx: StateContext<ApiUserInformation>, { user }: UserProfileUpdate) {
-    const localUser = this.storageService.get('user');
-    user['idx_member'] = localUser.idx;
-    user.session_id = localUser.session_id;
-    this.philgo.profileUpdate(user).subscribe(
-      res => {
-        this.storageService.set('user', res);
-        this.profile(ctx, { user: res } as any);
-      },
-      e => {
-        alert(e.message);
-        console.log('Error on User Update!', e);
-      }
+      })
     );
-  }
 
-  /**
-   * Resets the state and Set null value for user on localStorage.
-   *
-   * @param ctx state context
-   */
-  @Action(UserLogout) logout(ctx: StateContext<ApiUserInformation>) {
-    this.storageService.set('user', {});
-    ctx.setState({} as any);
   }
 
   /**
@@ -126,7 +64,7 @@ export class UserState implements NgxsOnInit {
     return this.a.philgo.register(user)
       .pipe(
         tap(res => {
-          this.profile(ctx, { user: res });
+          this.profile(ctx, { user: res } as any);
         })
       );
   }
@@ -138,7 +76,7 @@ export class UserState implements NgxsOnInit {
    * @param { user } `UserProfileUpdate` Class containing the `user` payload.
    */
   @Action(UserProfileUpdate) profileUpdate(ctx: StateContext<ApiUserInformation>, { user }: UserProfileUpdate) {
-    const localUser = this.a.get('user');
+    const localUser = this.a.helper.get('user');
 
     user['idx_member'] = localUser.idx;         // do this since `philgo.addLogin()` is not fixed yet.
     user.session_id = localUser.session_id;     // do this since `philgo.addLogin()` is not fixed yet.
@@ -146,7 +84,8 @@ export class UserState implements NgxsOnInit {
     return this.a.philgo.profileUpdate(user)
       .pipe(
         tap(res => {
-          this.profile(ctx, { user: res });
+          console.log(res);
+          this.profile(ctx, { user: res } as any);
         })
       );
   }
@@ -157,14 +96,8 @@ export class UserState implements NgxsOnInit {
    * @param ctx state context
    */
   @Action(UserLogout) logout(ctx: StateContext<ApiUserInformation>) {
-    this.profile(ctx, { user: {} } as any);
-  }
-
-  loadUserProfileAction() {
-    return this.a.get('user');
-  }
-  saveUserProfileAction(user: ApiUserInformation) {
-    this.a.set('user', user);
+    this.a.set('user', {});
+    ctx.setState({ } as any);
   }
 
 }
