@@ -41,15 +41,17 @@ export class UserState implements NgxsOnInit {
    * @param ctx State Context
    * @param { user } `UserLogin` Class containing the `user` payload.
    */
-  @Action(UserLogin) login(ctx: StateContext<ApiUserInformation>, { user }: UserLogin) {
-
-    return this.a.philgo.login(user).pipe(
-      tap(res => {
-        console.log(res);
-        this.profile(ctx, { user: res } as any);
-      })
-    );
-
+  @Action(UserLogin)
+  login(ctx: StateContext<ApiUserInformation>, action: UserLogin) {
+    return this.a.philgo.login({ uid: action.login.uid, password: action.login.password })
+      .pipe(
+        tap(user => {
+          // 아래와 같이 ctx 로 다시 Action 을 dispatch 할 수 있다.
+          // 아래의 Action 을 통해서 회원 정보를 localStorage 에 저장한다.
+          // console.log(`[UserLogin] action dispatched & Philgo login api has done with: `, user.idx, user.email, user.nickname);
+          ctx.dispatch(new UserProfile(user));
+        })
+      );
   }
 
   /**
@@ -84,7 +86,10 @@ export class UserState implements NgxsOnInit {
     return this.a.philgo.profileUpdate(user)
       .pipe(
         tap(res => {
+<<<<<<< HEAD
           console.log(res);
+=======
+>>>>>>> master
           this.profile(ctx, { user: res } as any);
         })
       );
