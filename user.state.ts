@@ -86,10 +86,6 @@ export class UserState implements NgxsOnInit {
     return this.a.philgo.profileUpdate(user)
       .pipe(
         tap(res => {
-<<<<<<< HEAD
-          console.log(res);
-=======
->>>>>>> master
           this.profile(ctx, { user: res } as any);
         })
       );
