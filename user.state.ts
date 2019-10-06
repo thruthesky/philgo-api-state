@@ -102,7 +102,7 @@ export class UserState {
    * @param ctx state context
    */
   @Action(UserLogout) logout(ctx: StateContext<ApiUserInformation>) {
-    ctx.setState({} as any);
+    this.profile(ctx, { user: {} } as any);
   }
 
   loadUserProfileAction() {
