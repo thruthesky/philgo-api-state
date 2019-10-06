@@ -56,7 +56,7 @@ export class UserState {
           // console.log(`[UserLogin] action dispatched & Philgo login api has done with: `, user.idx, user.email, user.nickname);
           ctx.dispatch(new UserProfile(user));
         })
-      ).subscribe();
+      );
   }
 
   /**
@@ -71,7 +71,7 @@ export class UserState {
     return this.a.philgo.register(user)
       .pipe(
         tap(res => {
-          this.profile(ctx, { user: res });
+          this.profile(ctx, { user: res } as any);
         })
       );
   }
@@ -91,7 +91,7 @@ export class UserState {
     return this.a.philgo.profileUpdate(user)
       .pipe(
         tap(res => {
-          this.profile(ctx, { user: res });
+          this.profile(ctx, { user: res } as any);
         })
       );
   }
@@ -102,7 +102,7 @@ export class UserState {
    * @param ctx state context
    */
   @Action(UserLogout) logout(ctx: StateContext<ApiUserInformation>) {
-    this.profile(ctx, { user: {} } as any);
+    ctx.setState({} as any);
   }
 
   loadUserProfileAction() {
