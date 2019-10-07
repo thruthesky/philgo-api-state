@@ -3,7 +3,6 @@ import { ApiPost } from '@libs/philgo-api/philgo-api-interface';
 import { State, Action, StateContext, Selector } from '@ngxs/store';
 import { ForumPostSearch, ForumPostCreate, ForumPostView, ForumPostUpdate, ForumPostDelete } from './forum.action';
 import { tap } from 'rxjs/operators';
-import { DomSanitizer } from '@angular/platform-browser';
 
 export interface ForumStateModel {
   postList: ApiPost[];
@@ -77,15 +76,14 @@ export class ForumState {
   }
 
   constructor(
-    private a: AppService,
-    private domSanitizer: DomSanitizer
+    private a: AppService
   ) {
   }
 
   /**
    * Add login credentials to data.
    * @param obj data to add login credentials
-   * 
+   *
    * @note this is only necessary since philgo `addLogin` function is not yet fixed.
    */
   private addLogin(obj?: any) {
@@ -121,7 +119,12 @@ export class ForumState {
       post.mine = true;
     }
 
-    post['safeContent'] = this.domSanitizer.bypassSecurityTrustHtml(post.content);
+    /**
+     * nativeScript doesn't have dom
+     */
+    if ( this.a.isWeb ) {
+      post['safeContent'] = this.a.helper.sanitizeContent(post.content);
+    }
 
     return post;
   }
@@ -324,7 +327,7 @@ export class ForumState {
 
   /**
    * requests a delete from backend then replace the target post on the state with a deleted instance.
-   * 
+   *
    * @param ctx state context
    * @param idx post idx to delete
    */

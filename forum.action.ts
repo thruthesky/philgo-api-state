@@ -24,6 +24,18 @@ export class ForumPostView {
   constructor(public idx: string) { }
 }
 
+export class ForumPostVote {
+  static readonly type = '[Forum] Post Vote';
+
+  constructor(public vote: 'G' | 'B') { }
+}
+
+export class ForumPostBookmark {
+  static readonly type = '[Forum] Post Bookmark';
+
+  constructor(public idx: string) { }
+}
+
 export class ForumPostDelete {
   static readonly type = '[Forum] Post Delete';
 
