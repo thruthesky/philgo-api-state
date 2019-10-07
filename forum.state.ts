@@ -322,6 +322,12 @@ export class ForumState {
     );
   }
 
+  /**
+   * requests a delete from backend then replace the target post on the state with a deleted instance.
+   * 
+   * @param ctx state context
+   * @param idx post idx to delete
+   */
   @Action(ForumPostDelete) postDelete(ctx: StateContext<ForumStateModel>, { idx }: ForumPostDelete) {
     const req = this.addLogin({ idx: idx });
     // console.log('delete post', req);
