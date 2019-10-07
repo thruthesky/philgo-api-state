@@ -1,7 +1,15 @@
 import { AppService } from '@libs/app.service';
 import { ApiPost } from '@libs/philgo-api/philgo-api-interface';
-import { State, Action, StateContext, Selector } from '@ngxs/store';
-import { ForumPostSearch, ForumPostCreate, ForumPostView, ForumPostUpdate, ForumPostDelete } from './forum.action';
+import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
+import {
+  ForumPostSearch,
+  ForumPostCreate,
+  ForumPostView,
+  ForumPostUpdate,
+  ForumPostDelete,
+  ForumPostVote,
+  ForumBookmarkSearch
+} from './forum.action';
 import { tap } from 'rxjs/operators';
 
 export interface ForumStateModel {
@@ -41,7 +49,7 @@ export interface ForumStateModel {
     newestCreatedPost: {}
   } as any
 })
-export class ForumState {
+export class ForumState implements NgxsOnInit {
 
   /**
    * return the whole forum state.
@@ -63,13 +71,18 @@ export class ForumState {
    *  @Select(s => s.forum.postLoaded) post$: Observable<ApiPost>;
    * ````
    *
-   * @param forum forum state
+   * @param forum state
    */
   @Selector()
   static postLoaded(forum: ForumStateModel) {
     return forum.postLoaded;
   }
 
+  /**
+   * returns the newest created post by the user.
+   *
+   * @param forum state
+   */
   @Selector()
   static newestCreatedPost(forum: ForumStateModel) {
     return forum.newestCreatedPost;
@@ -78,6 +91,9 @@ export class ForumState {
   constructor(
     private a: AppService
   ) {
+  }
+
+  ngxsOnInit() {
   }
 
   /**
@@ -122,7 +138,7 @@ export class ForumState {
     /**
      * nativeScript doesn't have dom
      */
-    if ( this.a.isWeb ) {
+    if (this.a.isWeb) {
       post['safeContent'] = this.a.helper.sanitizeContent(post.content);
     }
 
@@ -130,13 +146,13 @@ export class ForumState {
   }
 
   /**
-   * adds or Edit post data
+   * adds or Edit post data on post list.
    *  - it will add it to the post list if not existing yet.
    *  - it will overwrite the existing one on the state.
    *
    * @param post
    */
-  addToPostList({ getState, patchState }: StateContext<ForumStateModel>, post: ApiPost) {
+  updatePostList({ getState, patchState }: StateContext<ForumStateModel>, post: ApiPost) {
     post = this.pre(post);
     const posts = { ...getState().postList };
     posts[post.idx] = post;
@@ -172,7 +188,7 @@ export class ForumState {
   }
 
   /**
-   * Add post to certain idCategory.
+   * Add post to list and to certain idCategory.
    *
    * @param ctx state context.
    * @param post post payload.
@@ -180,7 +196,7 @@ export class ForumState {
    * @param top wether top (new post) or not.
    */
   addPost(ctx: StateContext<ForumStateModel>, post: ApiPost, idCategory: string, top = false) {
-    this.addToPostList(ctx, post);
+    this.updatePostList(ctx, post);
     this.addToIDcategory(ctx, post, idCategory, top);
   }
 
@@ -276,7 +292,7 @@ export class ForumState {
     return this.a.philgo.postLoad(idx).pipe(
       tap(post => {
         this.pre(post);
-        this.addToPostList(ctx, post);
+        this.updatePostList(ctx, post);
         ctx.patchState({
           postLoaded: post
         });
@@ -320,7 +336,7 @@ export class ForumState {
     return this.a.philgo.postUpdate(post).pipe(
       tap(res => {
         this.pre(res);
-        this.addToPostList(ctx, res);
+        this.updatePostList(ctx, res);
       })
     );
   }
@@ -348,7 +364,51 @@ export class ForumState {
           show: false,
           mine: false
         };
-        this.addToPostList(ctx, deletedPost);
+        this.updatePostList(ctx, deletedPost);
+      })
+    );
+  }
+
+  /**
+   * request to backend then apply changes to post on `state.postList`
+   */
+  @Action(ForumPostVote) postVote(ctx: StateContext<ForumStateModel>, { vote }: ForumPostVote) {
+    vote = this.addLogin(vote);
+
+    return this.a.philgo.postLike(vote).pipe(
+      tap(res => {
+
+        const post = { ...ctx.getState().postList[vote.idx] };
+        if (res.mode === 'good') {
+          post.good = res.result;
+        } else {
+          post.bad = res.result;
+        }
+
+        this.updatePostList(ctx, post);
+      })
+    );
+  }
+
+  @Action(ForumBookmarkSearch) loadBookmarks(ctx: StateContext<ForumStateModel>, { searchOpts }: ForumBookmarkSearch) {
+
+    return this.a.philgo.postQuery(searchOpts).pipe(
+      tap(res => {
+        if (res.length < searchOpts.limit) {
+          ctx.patchState({
+            noMorePost: { ['bookmarks']: true },
+          });
+        }
+
+        if (res.length) {
+          res.forEach(post => {
+              this.updatePostList(ctx, post);
+          });
+        }
+
+        ctx.patchState({
+          page_no: { ['bookmarks']: searchOpts.page_no },
+        });
       })
     );
   }

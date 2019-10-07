@@ -1,6 +1,6 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { ApiUserInformation } from 'libs/philgo-api/philgo-api-interface';
-import { UserProfile, UserLogin, UserLogout, UserRegister, UserProfileUpdate } from './user.action';
+import { UserProfile, UserLogin, UserLogout, UserRegister, UserProfileUpdate, UserBookmark } from './user.action';
 import { tap } from 'rxjs/operators';
 import { AppService } from '@libs/app.service';
 
@@ -99,7 +99,27 @@ export class UserState implements NgxsOnInit {
    */
   @Action(UserLogout) logout(ctx: StateContext<ApiUserInformation>) {
     this.a.set('user', {});
-    ctx.setState({ } as any);
+    ctx.setState({} as any);
+  }
+
+  @Action(UserBookmark) updateBookmark(ctx: StateContext<ApiUserInformation>, { idx }: UserBookmark) {
+
+    let bookmarkList: any = this.a.user.text_5;
+
+    if ( !bookmarkList ) {
+      bookmarkList = idx;
+    } else {
+      bookmarkList = bookmarkList.split(',');
+      const index = bookmarkList.indexOf(idx);
+      if (index > -1) {
+        bookmarkList.splice(index, 1);
+      } else {
+        bookmarkList.unshift(idx);
+      }
+      bookmarkList = bookmarkList.length ? bookmarkList.join() : '';
+    }
+    // console.log(bookmarkList);
+    return this.profileUpdate(ctx, { user: { text_5: bookmarkList } });
   }
 
   loadUserProfileAction() {
@@ -108,7 +128,6 @@ export class UserState implements NgxsOnInit {
   saveUserProfileAction(user: ApiUserInformation) {
     this.a.set('user', user);
   }
-
 }
 
 

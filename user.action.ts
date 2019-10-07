@@ -35,3 +35,9 @@ export class UserProfileUpdate {
 export class UserLogout {
   static readonly type = '[User] Logout';
 }
+
+export class UserBookmark {
+  static readonly type = '[User] Bookmark';
+
+  constructor(public idx: string) {}
+}

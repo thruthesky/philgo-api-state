@@ -1,4 +1,4 @@
-import { ApiPostSearch, ApiPost } from '@libs/philgo-api/philgo-api-interface';
+import { ApiPostSearch, ApiPost, ApiVote, ApiPostQuery } from '@libs/philgo-api/philgo-api-interface';
 
 export class ForumPostSearch {
   static readonly type = '[Forum] Post Search';
@@ -27,13 +27,14 @@ export class ForumPostView {
 export class ForumPostVote {
   static readonly type = '[Forum] Post Vote';
 
-  constructor(public vote: 'G' | 'B') { }
+  constructor(public vote: ApiVote) { }
 }
 
-export class ForumPostBookmark {
-  static readonly type = '[Forum] Post Bookmark';
 
-  constructor(public idx: string) { }
+export class ForumBookmarkSearch {
+  static readonly type = '[Forum] Bookmark Search';
+
+  constructor(public searchOpts: ApiPostQuery) { }
 }
 
 export class ForumPostDelete {
