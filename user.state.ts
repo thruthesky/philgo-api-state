@@ -19,7 +19,7 @@ export class UserState implements NgxsOnInit {
   }
 
   ngxsOnInit(ctx: StateContext<ApiUserInformation>) {
-    const localUser = this.a.get('user');
+    const localUser = this.loadUserProfileAction();
     this.profile(ctx, { user: localUser } as any);
   }
 
@@ -31,7 +31,7 @@ export class UserState implements NgxsOnInit {
    */
   @Action(UserProfile) profile(ctx: StateContext<ApiUserInformation>, { user }: UserProfile) {
     // if no user, maybe the app is booting
-    this.a.set('user', user);
+    this.saveUserProfileAction(user);
     ctx.patchState(user);
   }
 
@@ -42,8 +42,8 @@ export class UserState implements NgxsOnInit {
    * @param { user } `UserLogin` Class containing the `user` payload.
    */
   @Action(UserLogin)
-  login(ctx: StateContext<ApiUserInformation>, { user }: UserLogin) {
-    return this.a.philgo.login({ uid: user.uid, password: user.password })
+  login(ctx: StateContext<ApiUserInformation>, { login }: UserLogin) {
+    return this.a.philgo.login({ uid: login.uid, password: login.password })
       .pipe(
         tap(res => {
           // 아래와 같이 ctx 로 다시 Action 을 dispatch 할 수 있다.
@@ -100,6 +100,13 @@ export class UserState implements NgxsOnInit {
   @Action(UserLogout) logout(ctx: StateContext<ApiUserInformation>) {
     this.a.set('user', {});
     ctx.setState({ } as any);
+  }
+
+  loadUserProfileAction() {
+    return this.a.get('user');
+  }
+  saveUserProfileAction(user: ApiUserInformation) {
+    this.a.set('user', user);
   }
 
 }

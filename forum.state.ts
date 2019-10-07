@@ -133,14 +133,6 @@ export class ForumState {
       );
   }
 
-  @Action(ForumPostCreate) postCreate(ctx: StateContext<ForumStateModel>, { post, idCategory }: ForumPostCreate) {
-    return this.a.philgo.postCreate(post).pipe(
-      tap(res => {
-        this.addPost(ctx, res, idCategory, true);
-      })
-    );
-  }
-
   @Action(ForumPostView) postLoad(ctx: StateContext<ForumStateModel>, { idx }: ForumPostView) {
     const state = ctx.getState();
 
@@ -159,6 +151,14 @@ export class ForumState {
         ctx.patchState({
           postOnView: post
         });
+      })
+    );
+  }
+
+  @Action(ForumPostCreate) postCreate(ctx: StateContext<ForumStateModel>, { post, idCategory }: ForumPostCreate) {
+    return this.a.philgo.postCreate(post).pipe(
+      tap(res => {
+        this.addPost(ctx, res, idCategory, true);
       })
     );
   }

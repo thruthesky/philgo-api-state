@@ -24,7 +24,7 @@ export class UserRegister {
 
 export class UserLogin {
   static readonly type = '[User] Login';
-  constructor(public user: ApiLoginRequest) { }
+  constructor(public login: ApiLoginRequest) { }
 }
 
 export class UserProfileUpdate {
