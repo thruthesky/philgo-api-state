@@ -39,5 +39,5 @@ export class UserLogout {
 export class UserBookmark {
   static readonly type = '[User] Bookmark';
 
-  constructor(public idx: string) {}
+  constructor(public bookmarkList: string) {}
 }

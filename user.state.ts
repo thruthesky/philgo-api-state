@@ -102,23 +102,7 @@ export class UserState implements NgxsOnInit {
     ctx.setState({} as any);
   }
 
-  @Action(UserBookmark) updateBookmark(ctx: StateContext<ApiUserInformation>, { idx }: UserBookmark) {
-
-    let bookmarkList: any = this.a.user.text_5;
-
-    if ( !bookmarkList ) {
-      bookmarkList = idx;
-    } else {
-      bookmarkList = bookmarkList.split(',');
-      const index = bookmarkList.indexOf(idx);
-      if (index > -1) {
-        bookmarkList.splice(index, 1);
-      } else {
-        bookmarkList.unshift(idx);
-      }
-      bookmarkList = bookmarkList.length ? bookmarkList.join() : '';
-    }
-    // console.log(bookmarkList);
+  @Action(UserBookmark) updateBookmark(ctx: StateContext<ApiUserInformation>, { bookmarkList }: UserBookmark) {
     return this.profileUpdate(ctx, { user: { text_5: bookmarkList } });
   }
 

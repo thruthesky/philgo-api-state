@@ -13,12 +13,11 @@ import {
 import { tap } from 'rxjs/operators';
 
 export interface ForumStateModel {
-  postList: ApiPost[];
+  postList: {
+    [key: string]: ApiPost
+  };
   forumList: {
     [key: string]: string[];
-  };
-  loading: {
-    [key: string]: boolean;
   };
   page_no: {
     [key: string]: number;
@@ -40,9 +39,8 @@ export interface ForumStateModel {
 @State<ForumStateModel>({
   name: 'forum',
   defaults: {
-    postList: [],
+    postList: {},
     forumList: {},
-    loading: {},
     page_no: {},
     noMorePost: {},
     postLoaded: {},
@@ -285,7 +283,6 @@ export class ForumState implements NgxsOnInit {
       ctx.patchState({
         postLoaded: state.postList[idx]
       });
-      return;
     }
 
     // if not then fetch from backend.
@@ -354,7 +351,7 @@ export class ForumState implements NgxsOnInit {
     return this.a.philgo.postDelete(req).pipe(
       tap(res => {
         const deletedPost: ApiPost = {
-          idx: res.idx as any,
+          idx: `${res.idx}`,
           subject: 'Deleted',
           content: 'Deleted',
           deleted: '1',
@@ -402,7 +399,7 @@ export class ForumState implements NgxsOnInit {
 
         if (res.length) {
           res.forEach(post => {
-              this.updatePostList(ctx, post);
+            this.updatePostList(ctx, post);
           });
         }
 
