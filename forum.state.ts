@@ -151,7 +151,6 @@ export class ForumState implements NgxsOnInit {
    * @param post
    */
   updatePostList({ getState, patchState }: StateContext<ForumStateModel>, post: ApiPost) {
-    post = this.pre(post);
     const posts = { ...getState().postList };
     posts[post.idx] = post;
     patchState({
@@ -206,13 +205,7 @@ export class ForumState implements NgxsOnInit {
    */
   @Action(ForumPostSearch) postSearch(ctx: StateContext<ForumStateModel>, { searchOption }: ForumPostSearch) {
     const state = ctx.getState();
-
     const idCategory = this.a.generateIdCategory(searchOption);
-
-    // if state is already loading posts for this category return. prevent request spam.
-    // if (state.loading[idCategory]) {
-    //   return;
-    // }
 
     // if page number is 0 then replace with 1.
     if (!searchOption.page_no) {
@@ -248,6 +241,7 @@ export class ForumState implements NgxsOnInit {
           // for each post we add it to the state postsList.
           res.posts.forEach(
             post => {
+              this.pre(post);
               this.addPost(ctx, post, idCategory);
             });
         })
@@ -311,6 +305,7 @@ export class ForumState implements NgxsOnInit {
     return this.a.philgo.postCreate(post).pipe(
       tap(res => {
         // console.log(res);
+        this.pre(post);
         this.addPost(ctx, res, idCategory, true);     // add to idCategory.
         this.addToIDcategory(ctx, res, res.idx_member, true);     // add to myPosts.
         ctx.patchState({
@@ -381,7 +376,6 @@ export class ForumState implements NgxsOnInit {
         } else {
           post.bad = res.result;
         }
-
         this.updatePostList(ctx, post);
       })
     );
