@@ -79,7 +79,7 @@ export class UserState implements NgxsOnInit {
    * @param { user } `UserProfileUpdate` Class containing the `user` payload.
    */
   @Action(UserProfileUpdate) profileUpdate(ctx: StateContext<ApiUserInformation>, { user }: UserProfileUpdate) {
-    const localUser = this.a.helper.get('user');
+    const localUser = this.a.get('user');
 
     user['idx_member'] = localUser.idx;         // do this since `philgo.addLogin()` is not fixed yet.
     user.session_id = localUser.session_id;     // do this since `philgo.addLogin()` is not fixed yet.

@@ -97,7 +97,7 @@ export class ForumState {
      * nativeScript doesn't have dom
      */
     if (this.a.isWeb) {
-      post['safeContent'] = this.a.helper.sanitizeContent(post.content);
+      post['safeContent'] = this.a.sanitizeContent(post.content);
     }
 
     return post;
