@@ -1,6 +1,6 @@
 import { AppService } from '@libs/app.service';
 import { ApiPost } from '@libs/philgo-api/philgo-api-interface';
-import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
+import { State, Action, StateContext } from '@ngxs/store';
 import {
   ForumPostSearch,
   ForumPostCreate,
@@ -47,14 +47,11 @@ export interface ForumStateModel {
     newestCreatedPost: {}
   } as any
 })
-export class ForumState implements NgxsOnInit {
+export class ForumState {
 
   constructor(
     private a: AppService
   ) {
-  }
-
-  ngxsOnInit() {
   }
 
   /**
@@ -124,7 +121,7 @@ export class ForumState implements NgxsOnInit {
   /**
    * Update post no for a given idCategory.
    * @param state
-   * @param idCategory 
+   * @param idCategory
    */
   updatePageNo({ getState, patchState }: StateContext<ForumStateModel>, idCategory: string, page_no: number) {
     const pageNums = { ...getState().page_no };
@@ -231,20 +228,6 @@ export class ForumState implements NgxsOnInit {
   /**
    * it will fetch a post from state if existing or the backend if not.
    * then will patch the states `PostLoaded` property for easy access.
-   *
-   * @example
-   * ````
-   *  export class PostViewComponent {
-   *
-   *    @Select(s => s.forum.postLoaded) post$: Observable<ApiPost>;
-   *
-   *    constructor() {
-   *      this.post$.subscribe(post => this.post = post);
-   *    }
-   *
-   *  // ...
-   * }
-   * ````
    *
    * @param ctx state context
    * @param idx post idx to load
