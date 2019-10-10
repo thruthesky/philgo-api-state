@@ -49,43 +49,6 @@ export interface ForumStateModel {
 })
 export class ForumState implements NgxsOnInit {
 
-  /**
-   * return the whole forum state.
-   * can be access via `@Select()` decorator.
-   *
-   * @param forum state
-   */
-  @Selector()
-  static forumPosts(forum: ForumStateModel) {
-    return forum;
-  }
-
-  /**
-   * return the current loaded posts
-   * can be access via `@Select()` decorator.
-   *
-   * @example
-   * ````
-   *  @Select(s => s.forum.postLoaded) post$: Observable<ApiPost>;
-   * ````
-   *
-   * @param forum state
-   */
-  @Selector()
-  static postLoaded(forum: ForumStateModel) {
-    return forum.postLoaded;
-  }
-
-  /**
-   * returns the newest created post by the user.
-   *
-   * @param forum state
-   */
-  @Selector()
-  static newestCreatedPost(forum: ForumStateModel) {
-    return forum.newestCreatedPost;
-  }
-
   constructor(
     private a: AppService
   ) {
@@ -159,6 +122,33 @@ export class ForumState implements NgxsOnInit {
   }
 
   /**
+   * Update post no for a given idCategory.
+   * @param state
+   * @param idCategory 
+   */
+  updatePageNo({ getState, patchState }: StateContext<ForumStateModel>, idCategory: string, page_no: number) {
+    const pageNums = { ...getState().page_no };
+    pageNums[idCategory] = page_no;
+    patchState({
+      page_no: pageNums
+    });
+  }
+
+  /**
+   * Update no more posts stattus for a given idCategory
+   *
+   * @param state context
+   * @param idCategory idCategory
+   */
+  updateNoMorePostList({ getState, patchState }: StateContext<ForumStateModel>, idCategory: string) {
+    const noMorePosts = { ...getState().noMorePost };
+    noMorePosts[idCategory] = true;
+    patchState({
+      noMorePost: noMorePosts
+    });
+  }
+
+  /**
    * adds post to a certain IdCategory.
    *
    * @param ctx state context
@@ -204,28 +194,20 @@ export class ForumState implements NgxsOnInit {
    * @param searchOption search options
    */
   @Action(ForumPostSearch) postSearch(ctx: StateContext<ForumStateModel>, { searchOption }: ForumPostSearch) {
-    const state = ctx.getState();
     const idCategory = this.a.generateIdCategory(searchOption);
 
     // if page number is 0 then replace with 1.
     if (!searchOption.page_no) {
       searchOption.page_no = 1;
     }
-
-    // if the page_no for this category is already on the same page as it's state don't load it again.
-    if (state.page_no[idCategory] === searchOption.page_no) {
-      return;
-    }
-
-    // update the page number of this idcategory on the state for future reference.
-    ctx.patchState({
-      page_no: { [idCategory]: searchOption.page_no }
-    });
+    this.updatePageNo(ctx, idCategory, searchOption.page_no);
 
     // if no search limit then default limit is set to 10.
     if (!searchOption.limit) {
       searchOption.limit = 10;
     }
+
+    // update the page number of this idcategory on the state for future reference.
 
     return this.a.philgo.postSearch(searchOption)
       .pipe(
@@ -233,9 +215,7 @@ export class ForumState implements NgxsOnInit {
           // console.log(res);
           // set noMorePost for this category if the posts length doesn't reach the search limit.
           if (res.posts.length < searchOption.limit) {
-            ctx.patchState({
-              noMorePost: { [idCategory]: true }
-            });
+            this.updateNoMorePostList(ctx, idCategory);
           }
 
           // for each post we add it to the state postsList.
@@ -386,9 +366,7 @@ export class ForumState implements NgxsOnInit {
     return this.a.philgo.postQuery(searchOpts).pipe(
       tap(res => {
         if (res.length < searchOpts.limit) {
-          ctx.patchState({
-            noMorePost: { ['bookmarks']: true },
-          });
+          this.updateNoMorePostList(ctx, 'bookmarks');
         }
 
         if (res.length) {
@@ -397,9 +375,7 @@ export class ForumState implements NgxsOnInit {
           });
         }
 
-        ctx.patchState({
-          page_no: { ['bookmarks']: searchOpts.page_no },
-        });
+        this.updatePageNo(ctx, 'bookmarks', searchOpts.page_no);
       })
     );
   }
