@@ -25,11 +25,6 @@ export interface ForumStateModel {
   noMorePost: {
     [key: string]: boolean;
   };
-
-  /**
-   * this will be patched whenever a postLoad request is dispatched.
-   */
-  postLoaded: ApiPost;
   /**
    * this will be patched whenever a new post is created.
    */
@@ -43,7 +38,6 @@ export interface ForumStateModel {
     forumList: {},
     page_no: {},
     noMorePost: {},
-    postLoaded: {},
     newestCreatedPost: {}
   } as any
 })
@@ -226,30 +220,16 @@ export class ForumState {
   }
 
   /**
-   * it will fetch a post from state if existing or the backend if not.
-   * then will patch the states `PostLoaded` property for easy access.
+   * it will fetch a post form the backend.
    *
    * @param ctx state context
    * @param idx post idx to load
    */
   @Action(ForumPostView) postLoad(ctx: StateContext<ForumStateModel>, { idx }: ForumPostView) {
-    const state = ctx.getState();
-
-    // if post already exist on the state, patch postLoaded for easy access on post view.
-    if (state.postList[idx]) {
-      ctx.patchState({
-        postLoaded: state.postList[idx]
-      });
-    }
-
-    // if not then fetch from backend.
     return this.a.philgo.postLoad(idx).pipe(
       tap(post => {
         this.pre(post);
         this.updatePostList(ctx, post);
-        ctx.patchState({
-          postLoaded: post
-        });
       })
     );
   }
@@ -354,6 +334,7 @@ export class ForumState {
 
         if (res.length) {
           res.forEach(post => {
+            this.pre(post);
             this.updatePostList(ctx, post);
           });
         }
