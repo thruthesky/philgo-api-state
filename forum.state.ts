@@ -94,6 +94,8 @@ export class ForumState {
       post['safeContent'] = post.content;
     }
 
+    post.inCommentEdit = post.idx;
+
     return post;
   }
 
