@@ -6,6 +6,13 @@ export class ForumPostSearch {
   constructor(public searchOption: ApiPostSearch) { }
 }
 
+
+export class ForumPostView {
+  static readonly type = '[Forum] Post View';
+
+  constructor(public idx: string) { }
+}
+
 export class ForumPostCreate {
   static readonly type = '[Forum] Post Create';
 
@@ -18,18 +25,17 @@ export class ForumPostUpdate {
   constructor(public post: ApiPost) { }
 }
 
-export class ForumPostView {
-  static readonly type = '[Forum] Post View';
+export class ForumPostOrCommentVote {
+  static readonly type = '[Forum] Vote';
 
-  constructor(public idx: string) { }
+  constructor(public vote: ApiVote, public postOrComment: ApiPost | ApiComment) { }
 }
 
-export class ForumPostVote {
-  static readonly type = '[Forum] Post Vote';
+export class ForumPostOrCommentDelete {
+  static readonly type = '[Forum] Delete';
 
-  constructor(public vote: ApiVote) { }
+  constructor(public postOrComment: ApiPost | ApiComment) { }
 }
-
 
 export class ForumBookmarkSearch {
   static readonly type = '[Forum] Bookmark Search';
@@ -37,11 +43,6 @@ export class ForumBookmarkSearch {
   constructor(public searchOpts: ApiPostQuery) { }
 }
 
-export class ForumPostDelete {
-  static readonly type = '[Forum] Post Delete';
-
-  constructor(public idx: string) { }
-}
 
 
 export class ForumCommentCreate {
@@ -55,12 +56,3 @@ export class ForumCommentUpdate {
 
   constructor(public comment: ApiComment) {}
 }
-
-
-export class ForumCommentDelete {
-  static readonly type = '[Forum] Comment Delete';
-
-  constructor(public comment: ApiComment) {}
-}
-
-
