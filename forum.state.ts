@@ -5,12 +5,11 @@ import {
   ForumPostSearch,
   ForumPostCreate,
   ForumPostView,
-  ForumPostUpdate,
-  ForumPostOrCommentDelete,
   ForumBookmarkSearch,
-  ForumCommentCreate,
-  ForumCommentUpdate,
-  ForumPostOrCommentVote
+  ForumPostOrCommentVote,
+  ForumPostOrCommentUpdate,
+  ForumPostOrCommentDelete,
+  ForumCommentCreate
 } from './forum.action';
 import { tap } from 'rxjs/operators';
 
@@ -185,7 +184,7 @@ export class ForumState {
   }
 
   /**
-   *
+   * `Forum posts` load.
    *
    * @param ctx state context
    * @param searchOption search options
@@ -226,7 +225,7 @@ export class ForumState {
   }
 
   /**
-   * it will fetch a post form the backend.
+   * `Single post` load.
    *
    * @param ctx state context
    * @param idx post idx to load
@@ -236,6 +235,32 @@ export class ForumState {
       tap(post => {
         post = this.pre(post);
         this.updatePostList(ctx, post);
+      })
+    );
+  }
+
+  /**
+   * `Bookmark` loading.
+   *
+   * @param ctx state context
+   * @param searchOpts search options
+   */
+  @Action(ForumBookmarkSearch) loadBookmarks(ctx: StateContext<ForumStateModel>, { searchOpts }: ForumBookmarkSearch) {
+    return this.a.philgo.postQuery(searchOpts).pipe(
+      tap(res => {
+
+        if (res.length < searchOpts.limit) {
+          this.updateNoMorePostList(ctx, 'bookmarks');
+        }
+
+        if (res.length) {
+          res.forEach(post => {
+            post = this.pre(post);
+            this.updatePostList(ctx, post);
+          });
+
+          this.updatePageNo(ctx, 'bookmarks', searchOpts.page_no);
+        }
       })
     );
   }
@@ -264,35 +289,65 @@ export class ForumState {
     );
   }
 
+
+  @Action(ForumCommentCreate) createComment(ctx: StateContext<ForumStateModel>, { comment }: ForumCommentCreate) {
+    comment = this.addLogin(comment);
+    const index = comment['index'];
+
+    return this.a.philgo.commentCreate(comment).pipe(
+      tap(res => {
+
+        const post = { ...ctx.getState().postList[res.idx_root] };
+        if (!post.comments) {
+          post.comments = [];
+        }
+
+        if (res.depth === '1') {
+          post.comments.push(res);
+        } else {
+          post.comments.splice(index + 1, 0, res);
+        }
+
+        post.inCommentEdit = post.idx;
+        this.updatePostList(ctx, post);
+      })
+    );
+  }
+
   /**
    * Update a post from backend and overwrite the one existing on the state.
    *
    * @param ctx state contexnt
    * @param post new post data.
    */
-  @Action(ForumPostUpdate) postUpdate(ctx: StateContext<ForumStateModel>, { post }: ForumPostCreate) {
-    post = this.addLogin(post);
-    // console.log('update post', post);
+  @Action(ForumPostOrCommentUpdate) postOrCommentUpdate(ctx: StateContext<ForumStateModel>, { postOrComment }: ForumPostOrCommentUpdate) {
+    const req = this.addLogin(postOrComment);
+    const post = { ...ctx.getState().postList[postOrComment.idx_parent === '0' ? postOrComment.idx : postOrComment.idx_root] };
 
-    return this.a.philgo.postUpdate(post).pipe(
+
+    // console.log(post);
+    return this.a.philgo.postUpdate(req).pipe(
       tap(res => {
-        post = this.pre(res);
-        this.updatePostList(ctx, res);
-      })
-    );
-  }
 
-  @Action(ForumCommentUpdate) updateComment(ctx: StateContext<ForumStateModel>, { comment }: ForumCommentUpdate) {
-    comment = this.addLogin(comment);
-    const index = comment['index'];
+        /**
+         * post
+         */
+        if (postOrComment.idx_parent === '0') {
+          this.pre(res);
+          this.updatePostList(ctx, res);
 
-    return this.a.philgo.postUpdate(comment as any).pipe(
-      tap(res => {
-        const post = { ...ctx.getState().postList[res.idx_root] };
-        post.inCommentEdit = post.idx;
-        post.comments[index] = res as any;
+          /**
+           * comment
+           *
+           * `index` will always be present if we are dealing with comment.
+           */
+        } else {
+          const index = postOrComment['index'];
+          Object.assign(post.comments[index], res);
+          post.inCommentEdit = post.idx;
+          this.updatePostList(ctx, post);
+        }
 
-        this.updatePostList(ctx, post);
       })
     );
   }
@@ -316,14 +371,23 @@ export class ForumState {
           deleted: '1'
         };
 
-        // post
+        /**
+         * for post.
+         */
         if (postOrComment.idx_parent === '0') {
           this.updatePostList(ctx, deletedData);
 
-          // comment
+          /**
+           * for comment.
+           *
+           * use `idx_root` since `idx_parent` can be a post idx or comment idx.
+           * `index` will always be present if we are dealing with comment.
+           */
         } else {
           const post = { ...ctx.getState().postList[postOrComment.idx_root] };
           const index = postOrComment['index'];
+
+          deletedData.depth = postOrComment.depth;
           post.comments[index] = deletedData;
           this.updatePostList(ctx, post);
         }
@@ -356,59 +420,19 @@ export class ForumState {
         }
 
         // post
-        if ( postOrComment.idx_parent === '0' ) {
+        if (postOrComment.idx_parent === '0') {
           Object.assign(post, voteRes);
 
-        // comment
+          /**
+           * comment
+           *
+           * `index` will always be present if we are dealing with comment.
+           */
         } else {
           const index = postOrComment['index'];
           Object.assign(post.comments[index], voteRes);
         }
 
-        this.updatePostList(ctx, post);
-      })
-    );
-  }
-
-  @Action(ForumBookmarkSearch) loadBookmarks(ctx: StateContext<ForumStateModel>, { searchOpts }: ForumBookmarkSearch) {
-    return this.a.philgo.postQuery(searchOpts).pipe(
-      tap(res => {
-
-        if (res.length < searchOpts.limit) {
-          this.updateNoMorePostList(ctx, 'bookmarks');
-        }
-
-        if (res.length) {
-          res.forEach(post => {
-            post = this.pre(post);
-            this.updatePostList(ctx, post);
-          });
-
-          this.updatePageNo(ctx, 'bookmarks', searchOpts.page_no);
-        }
-      })
-    );
-  }
-
-  @Action(ForumCommentCreate) createComment(ctx: StateContext<ForumStateModel>, { comment }: ForumCommentCreate) {
-    comment = this.addLogin(comment);
-    const index = comment['index'];
-
-    return this.a.philgo.commentCreate(comment).pipe(
-      tap(res => {
-
-        const post = { ...ctx.getState().postList[res.idx_root] };
-        if (!post.comments) {
-          post.comments = [];
-        }
-
-        if (res.depth === '1') {
-          post.comments.push(res);
-        } else {
-          post.comments.splice(index + 1, 0, res);
-        }
-
-        post.inCommentEdit = post.idx;
         this.updatePostList(ctx, post);
       })
     );
