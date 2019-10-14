@@ -8,7 +8,10 @@ import {
   ForumPostUpdate,
   ForumPostDelete,
   ForumPostVote,
-  ForumBookmarkSearch
+  ForumBookmarkSearch,
+  ForumCommentCreate,
+  ForumCommentUpdate,
+  ForumCommentDelete
 } from './forum.action';
 import { tap } from 'rxjs/operators';
 
@@ -108,7 +111,7 @@ export class ForumState {
    */
   updatePostList({ getState, patchState }: StateContext<ForumStateModel>, post: ApiPost) {
     const posts = { ...getState().postList };
-    if ( post.idx ) {
+    if (post.idx) {
       posts[post.idx] = post;
       patchState({
         postList: posts
@@ -329,7 +332,6 @@ export class ForumState {
   }
 
   @Action(ForumBookmarkSearch) loadBookmarks(ctx: StateContext<ForumStateModel>, { searchOpts }: ForumBookmarkSearch) {
-
     return this.a.philgo.postQuery(searchOpts).pipe(
       tap(res => {
 
@@ -345,7 +347,57 @@ export class ForumState {
 
           this.updatePageNo(ctx, 'bookmarks', searchOpts.page_no);
         }
+      })
+    );
+  }
 
+  @Action(ForumCommentCreate) createComment(ctx: StateContext<ForumStateModel>, { comment }: ForumCommentCreate) {
+    comment = this.addLogin(comment);
+    const index = comment['index'];
+
+    return this.a.philgo.commentCreate(comment).pipe(
+      tap(res => {
+
+        const post = { ...ctx.getState().postList[res.idx_root] };
+        if (!post.comments) {
+          post.comments = [];
+        }
+
+        if (post.depth === '1') {
+          post.comments.push(res);
+        } else {
+          post.comments.splice(index, 0, res);
+        }
+
+        this.updatePostList(ctx, post);
+      })
+    );
+  }
+
+  @Action(ForumCommentUpdate) updateComment(ctx: StateContext<ForumStateModel>, { comment }: ForumCommentUpdate) {
+    comment = this.addLogin(comment);
+    const index = comment['index'];
+
+    return this.a.philgo.postUpdate(comment as any).pipe(
+      tap(res => {
+        const post = { ...ctx.getState().postList[res.idx_root] };
+        post.comments[index] = res as any;
+
+        this.updatePostList(ctx, post);
+      })
+    );
+  }
+
+  @Action(ForumCommentDelete) deleteComment(ctx: StateContext<ForumStateModel>, { comment }: ForumCommentDelete) {
+    comment = this.addLogin(comment);
+    const index = comment['index'];
+
+    return this.a.philgo.postDelete(comment as any).pipe(
+      tap(res => {
+        const post = { ...ctx.getState().postList[comment.idx_root] };
+        post.comments.splice(index, 1);
+
+        this.updatePostList(ctx, post);
       })
     );
   }

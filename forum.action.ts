@@ -1,4 +1,4 @@
-import { ApiPostSearch, ApiPost, ApiVote, ApiPostQuery } from '@libs/philgo-api/philgo-api-interface';
+import { ApiPostSearch, ApiPost, ApiVote, ApiPostQuery, ApiComment } from '@libs/philgo-api/philgo-api-interface';
 
 export class ForumPostSearch {
   static readonly type = '[Forum] Post Search';
@@ -42,4 +42,25 @@ export class ForumPostDelete {
 
   constructor(public idx: string) { }
 }
+
+
+export class ForumCommentCreate {
+  static readonly type = '[Forum] Comment Create';
+
+  constructor(public comment: ApiComment) {}
+}
+
+export class ForumCommentUpdate {
+  static readonly type = '[Forum] Comment Update';
+
+  constructor(public comment: ApiComment) {}
+}
+
+
+export class ForumCommentDelete {
+  static readonly type = '[Forum] Comment Delete';
+
+  constructor(public comment: ApiComment) {}
+}
+
 
