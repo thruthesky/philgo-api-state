@@ -108,10 +108,12 @@ export class ForumState {
    */
   updatePostList({ getState, patchState }: StateContext<ForumStateModel>, post: ApiPost) {
     const posts = { ...getState().postList };
-    posts[post.idx] = post;
-    patchState({
-      postList: posts
-    });
+    if ( post.idx ) {
+      posts[post.idx] = post;
+      patchState({
+        postList: posts
+      });
+    }
   }
 
   /**
@@ -330,6 +332,7 @@ export class ForumState {
 
     return this.a.philgo.postQuery(searchOpts).pipe(
       tap(res => {
+
         if (res.length < searchOpts.limit) {
           this.updateNoMorePostList(ctx, 'bookmarks');
         }
@@ -339,9 +342,10 @@ export class ForumState {
             this.pre(post);
             this.updatePostList(ctx, post);
           });
+
+          this.updatePageNo(ctx, 'bookmarks', searchOpts.page_no);
         }
 
-        this.updatePageNo(ctx, 'bookmarks', searchOpts.page_no);
       })
     );
   }
