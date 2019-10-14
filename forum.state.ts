@@ -366,7 +366,7 @@ export class ForumState {
         if (post.depth === '1') {
           post.comments.push(res);
         } else {
-          post.comments.splice(index, 0, res);
+          post.comments.splice(index + 1, 0, res);
         }
 
         this.updatePostList(ctx, post);
@@ -395,8 +395,14 @@ export class ForumState {
     return this.a.philgo.postDelete(comment as any).pipe(
       tap(res => {
         const post = { ...ctx.getState().postList[comment.idx_root] };
-        post.comments.splice(index, 1);
 
+        post.comments[index] = {
+          idx: comment.idx,
+          subject: 'Deleted',
+          deleted: '1'
+        } as any;
+
+        // post.comments.splice(index, 1);
         this.updatePostList(ctx, post);
       })
     );
