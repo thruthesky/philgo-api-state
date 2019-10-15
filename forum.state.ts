@@ -194,7 +194,7 @@ export class ForumState {
     const idCategory = this.a.generateIdCategory(searchOption);
     const pageNums = ctx.getState().page_no;
 
-    if ( !searchOption.page_no && pageNums[idCategory] ) {
+    if (!searchOption.page_no && pageNums[idCategory]) {
       console.log('don\'t load since page is already loaded?');
       return;
     }
@@ -203,9 +203,7 @@ export class ForumState {
     if (!searchOption.page_no) {
       searchOption.page_no = pageNums[idCategory] ? pageNums[idCategory] : 1;
     }
-    this.updatePageNo(ctx, idCategory, searchOption.page_no);
-
-    console.log('forumState::PostSearch', searchOption.page_no);
+    console.log('loading page no.', searchOption.page_no);
 
     // if no search limit then default limit is set to 10.
     if (!searchOption.limit) {
@@ -229,6 +227,11 @@ export class ForumState {
               post = this.pre(post);
               this.addPost(ctx, post, idCategory);
             });
+
+          /**
+           * update page number after successful return of data.
+           */
+          this.updatePageNo(ctx, idCategory, searchOption.page_no);
         })
       );
   }
@@ -255,6 +258,25 @@ export class ForumState {
    * @param searchOpts search options
    */
   @Action(ForumBookmarkSearch) loadBookmarks(ctx: StateContext<ForumStateModel>, { searchOpts }: ForumBookmarkSearch) {
+    const idCategory = 'bookmarks';
+    const pageNums = ctx.getState().page_no;
+
+    /**
+     * should we load already loaded post?
+     * if we load already loaded page number it will just update the returned post if there is any update for any post on that certain page.
+     * if we do not load. nothing happens.
+     */
+    if (!searchOpts.page_no && pageNums[idCategory]) {
+      console.log('don\'t load since page is already loaded?');
+      return;
+    }
+
+    // if page number is 0 or undefined then replace with idCategory's current page number on the state, if not yet set then 1.
+    if (!searchOpts.page_no) {
+      searchOpts.page_no = pageNums[idCategory] ? pageNums[idCategory] : 1;
+    }
+    console.log('loading page no.', searchOpts.page_no);
+
     return this.a.philgo.postQuery(searchOpts).pipe(
       tap(res => {
 
