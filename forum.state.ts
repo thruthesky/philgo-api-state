@@ -281,16 +281,17 @@ export class ForumState {
       tap(res => {
 
         if (res.length < searchOpts.limit) {
-          this.updateNoMorePostList(ctx, 'bookmarks');
+          this.updateNoMorePostList(ctx, idCategory);
         }
 
         if (res.length) {
           res.forEach(post => {
             post = this.pre(post);
-            this.updatePostList(ctx, post);
+            // this.updatePostList(ctx, post);
+            this.addPost(ctx, post, idCategory);
           });
 
-          this.updatePageNo(ctx, 'bookmarks', searchOpts.page_no);
+          this.updatePageNo(ctx, idCategory, searchOpts.page_no);
         }
       })
     );
