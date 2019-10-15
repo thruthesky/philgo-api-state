@@ -195,7 +195,7 @@ export class ForumState {
     const pageNums = ctx.getState().page_no;
 
     if (!searchOption.page_no && pageNums[idCategory]) {
-      console.log('don\'t load since page is already loaded?');
+      // console.log('don\'t load since page is already loaded?');
       return;
     }
 
@@ -203,7 +203,7 @@ export class ForumState {
     if (!searchOption.page_no) {
       searchOption.page_no = pageNums[idCategory] ? pageNums[idCategory] : 1;
     }
-    console.log('loading page no.', searchOption.page_no);
+    // console.log('loading page no.', searchOption.page_no);
 
     // if no search limit then default limit is set to 10.
     if (!searchOption.limit) {
@@ -263,11 +263,11 @@ export class ForumState {
 
     /**
      * should we load already loaded post?
-     * if we load already loaded page number it will just update the returned post if there is any update for any post on that certain page.
+     * if we load already loaded page number it will just update the existing post if there is any update for any post on that certain page.
      * if we do not load. nothing happens.
      */
     if (!searchOpts.page_no && pageNums[idCategory]) {
-      console.log('don\'t load since page is already loaded?');
+      // console.log('don\'t load since page is already loaded?');
       return;
     }
 
@@ -275,7 +275,7 @@ export class ForumState {
     if (!searchOpts.page_no) {
       searchOpts.page_no = pageNums[idCategory] ? pageNums[idCategory] : 1;
     }
-    console.log('loading page no.', searchOpts.page_no);
+    // console.log('loading page no.', searchOpts.page_no);
 
     return this.a.philgo.postQuery(searchOpts).pipe(
       tap(res => {
