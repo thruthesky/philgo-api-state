@@ -192,12 +192,20 @@ export class ForumState {
    */
   @Action(ForumPostSearch) postSearch(ctx: StateContext<ForumStateModel>, { searchOption }: ForumPostSearch) {
     const idCategory = this.a.generateIdCategory(searchOption);
+    const pageNums = ctx.getState().page_no;
 
-    // if page number is 0 then replace with 1.
+    if ( !searchOption.page_no && pageNums[idCategory] ) {
+      console.log('don\'t load since page is already loaded?');
+      return;
+    }
+
+    // if page number is 0 or undefined then replace with idCategory's current page number on the state, if not yet set then 1.
     if (!searchOption.page_no) {
-      searchOption.page_no = 1;
+      searchOption.page_no = pageNums[idCategory] ? pageNums[idCategory] : 1;
     }
     this.updatePageNo(ctx, idCategory, searchOption.page_no);
+
+    console.log('forumState::PostSearch', searchOption.page_no);
 
     // if no search limit then default limit is set to 10.
     if (!searchOption.limit) {
