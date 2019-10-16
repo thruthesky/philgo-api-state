@@ -111,7 +111,12 @@ export class ForumState {
   updatePostList({ getState, patchState }: StateContext<ForumStateModel>, post: ApiPost) {
     const posts = { ...getState().postList };
     if (post.idx) {
-      posts[post.idx] = post;
+      if (posts[post.idx]) {
+        Object.assign(posts[post.idx], post);
+      } else {
+        posts[post.idx] = post;
+      }
+
       patchState({
         postList: posts
       });
@@ -205,6 +210,7 @@ export class ForumState {
       searchOption.limit = 10;
     }
 
+    searchOption.deleted = 0;
     // update the page number of this idcategory on the state for future reference.
 
     return this.a.philgo.postSearch(searchOption)
