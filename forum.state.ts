@@ -194,11 +194,6 @@ export class ForumState {
     const idCategory = this.a.generateIdCategory(searchOption);
     const pageNums = ctx.getState().page_no;
 
-    if (!searchOption.page_no && pageNums[idCategory]) {
-      // console.log('don\'t load since page is already loaded?');
-      return;
-    }
-
     // if page number is 0 or undefined then replace with idCategory's current page number on the state, if not yet set then 1.
     if (!searchOption.page_no) {
       searchOption.page_no = pageNums[idCategory] ? pageNums[idCategory] : 1;
@@ -260,16 +255,6 @@ export class ForumState {
   @Action(ForumBookmarkSearch) loadBookmarks(ctx: StateContext<ForumStateModel>, { searchOpts }: ForumBookmarkSearch) {
     const idCategory = 'bookmarks';
     const pageNums = ctx.getState().page_no;
-
-    /**
-     * should we load already loaded post?
-     * if we load already loaded page number it will just update the existing post if there is any update for any post on that certain page.
-     * if we do not load. nothing happens.
-     */
-    // if (!searchOpts.page_no && pageNums[idCategory]) {
-      // console.log('don\'t load since page is already loaded?');
-      // return;
-    // }
 
     // if page number is 0 or undefined then replace with idCategory's current page number on the state, if not yet set then 1.
     if (!searchOpts.page_no) {
