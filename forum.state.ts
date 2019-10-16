@@ -78,7 +78,6 @@ export class ForumState {
   pre(post: ApiPost): ApiPost {
     post.bad = post.bad !== '0' ? post.bad : null;
     post.good = post.good !== '0' ? post.good : null;
-    post['replyTo'] = post.idx;
 
     if (!post.subject || post.subject === '') {
       post.subject = 'No Subject';
@@ -110,9 +109,10 @@ export class ForumState {
    */
   updatePostList({ getState, patchState }: StateContext<ForumStateModel>, post: ApiPost) {
     const posts = { ...getState().postList };
+    const previousPost = { ...posts[post.idx] };
     if (post.idx) {
       if (posts[post.idx]) {
-        Object.assign(posts[post.idx], post);
+        Object.assign(previousPost, post);
       } else {
         posts[post.idx] = post;
       }
@@ -225,7 +225,7 @@ export class ForumState {
           // for each post we add it to the state postsList.
           res.posts.forEach(
             post => {
-              post = this.pre(post);
+              this.pre(post);
               this.addPost(ctx, post, idCategory);
             });
 
@@ -246,7 +246,7 @@ export class ForumState {
   @Action(ForumPostView) postLoad(ctx: StateContext<ForumStateModel>, { idx }: ForumPostView) {
     return this.a.philgo.postLoad(idx).pipe(
       tap(post => {
-        post = this.pre(post);
+        this.pre(post);
         this.updatePostList(ctx, post);
       })
     );
@@ -277,7 +277,7 @@ export class ForumState {
 
         if (res.length) {
           res.forEach(post => {
-            post = this.pre(post);
+            this.pre(post);
             // this.updatePostList(ctx, post);
             this.addPost(ctx, post, idCategory);
           });
@@ -302,7 +302,7 @@ export class ForumState {
     return this.a.philgo.postCreate(post).pipe(
       tap(res => {
         // console.log(res);
-        post = this.pre(res);
+        this.pre(res);
         this.addPost(ctx, res, idCategory, true);     // add to idCategory.
         this.addToIDcategory(ctx, res, res.idx_member, true);     // add to myPosts.
         ctx.patchState({
