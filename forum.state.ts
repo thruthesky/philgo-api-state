@@ -74,19 +74,11 @@ export class ForumState {
 
   /**
    * prepares post data.
-   * @param prepare post data.
    */
-  pre(post: ApiPost): ApiPost {
+  pre(post: ApiPost, existing = false): ApiPost {
+    post.inCommentEdit = post.idx;
     post.bad = post.bad !== '0' ? post.bad : null;
     post.good = post.good !== '0' ? post.good : null;
-
-    if (!post.subject || post.subject === '') {
-      post.subject = 'No Subject';
-    }
-
-    if (post.member && post.member.idx === this.a.user.idx) {
-      post.mine = true;
-    }
 
     /**
      * nativeScript doesn't have dom
@@ -95,8 +87,17 @@ export class ForumState {
       post['safeContent'] = post.content;
     }
 
-    post.show = false;
-    post.inCommentEdit = post.idx;
+    if (!post.subject || post.subject === '') {
+      post.subject = 'No Subject';
+    }
+
+    if (!existing) {
+      post.show = false;
+
+      if (post.member && post.member.idx === this.a.user.idx) {
+        post.mine = true;
+      }
+    }
 
     return post;
   }
@@ -115,7 +116,7 @@ export class ForumState {
 
     const posts = { ...getState().postList };
     if (posts[post.idx]) {
-      Object.assign(posts[post.idx], post);
+      Object.assign(posts[post.idx], this.pre(post, true));
     } else {
       this.pre(post);
       posts[post.idx] = post;
