@@ -18,6 +18,12 @@ export class ForumPostCreate {
   constructor(public post: ApiPost) { }
 }
 
+export class ForumCommentCreate {
+  static readonly type = '[Forum] Comment Create';
+
+  constructor(public comment: ApiComment) {}
+}
+
 export class ForumPostOrCommentUpdate {
   static readonly type = '[Forum] Update';
 
@@ -42,16 +48,8 @@ export class ForumBookmarkSearch {
   constructor(public searchOpts: ApiPostQuery) { }
 }
 
+export class ForumBookmarkUpdate {
+  static readonly type = '[Forum] Bookmark Update';
 
-// aaa
-export class ForumCommentCreate {
-  static readonly type = '[Forum] Comment Create';
-
-  constructor(public comment: ApiComment) {}
+  constructor(public bookmarklist: string[]) {}
 }
-
-// export class ForumCommentUpdate {
-//   static readonly type = '[Forum] Comment Update';
-
-//   constructor(public comment: ApiComment) {}
-// }

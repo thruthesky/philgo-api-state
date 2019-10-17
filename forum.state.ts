@@ -9,7 +9,8 @@ import {
   ForumPostOrCommentVote,
   ForumPostOrCommentUpdate,
   ForumPostOrCommentDelete,
-  ForumCommentCreate
+  ForumCommentCreate,
+  ForumBookmarkUpdate
 } from './forum.action';
 import { tap } from 'rxjs/operators';
 
@@ -116,6 +117,7 @@ export class ForumState {
     if (posts[post.idx]) {
       Object.assign(posts[post.idx], post);
     } else {
+      this.pre(post);
       posts[post.idx] = post;
     }
 
@@ -226,7 +228,6 @@ export class ForumState {
           // for each post we add it to the state postsList.
           res.posts.forEach(
             post => {
-              this.pre(post);
               this.addPost(ctx, post, idCategory);
             });
 
@@ -247,7 +248,6 @@ export class ForumState {
   @Action(ForumPostView) postLoad(ctx: StateContext<ForumStateModel>, { idx }: ForumPostView) {
     return this.a.philgo.postLoad(idx).pipe(
       tap(post => {
-        this.pre(post);
         this.updatePostList(ctx, post);
       })
     );
@@ -278,8 +278,6 @@ export class ForumState {
 
         if (res.length) {
           res.forEach(post => {
-            this.pre(post);
-            // this.updatePostList(ctx, post);
             this.addPost(ctx, post, idCategory);
           });
 
@@ -287,6 +285,20 @@ export class ForumState {
         }
       })
     );
+  }
+
+  @Action(ForumBookmarkUpdate) updateBookmarkList(ctx: StateContext<ForumStateModel>, { bookmarklist }: ForumBookmarkUpdate) {
+    const state = { ...ctx.getState() };
+    const oldForumLists = state.forumList;
+
+    if (oldForumLists['bookmarks']) {
+      Object.assign(oldForumLists['bookmarks'], bookmarklist);
+    } else {
+      oldForumLists['bookmarks'] = bookmarklist;
+    }
+    ctx.patchState({
+      forumList: oldForumLists
+    });
   }
 
   /**
@@ -303,7 +315,6 @@ export class ForumState {
     return this.a.philgo.postCreate(post).pipe(
       tap(res => {
         // console.log(res);
-        this.pre(res);
         this.addPost(ctx, res, idCategory, true);     // add to idCategory.
         this.addToIDcategory(ctx, res, res.idx_member, true);     // add to myPosts.
         ctx.patchState({
@@ -357,7 +368,6 @@ export class ForumState {
          * post
          */
         if (postOrComment.idx_parent === '0') {
-          this.pre(res);
           this.updatePostList(ctx, res);
 
           /**
