@@ -108,19 +108,20 @@ export class ForumState {
    * @param post
    */
   updatePostList({ getState, patchState }: StateContext<ForumStateModel>, post: ApiPost) {
-    const posts = { ...getState().postList };
-    const previousPost = { ...posts[post.idx] };
-    if (post.idx) {
-      if (posts[post.idx]) {
-        Object.assign(previousPost, post);
-      } else {
-        posts[post.idx] = post;
-      }
-
-      patchState({
-        postList: posts
-      });
+    if (!post.idx) {
+      return;
     }
+
+    const posts = { ...getState().postList };
+    if (posts[post.idx]) {
+      Object.assign(posts[post.idx], post);
+    } else {
+      posts[post.idx] = post;
+    }
+
+    patchState({
+      postList: posts
+    });
   }
 
   /**
