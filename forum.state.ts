@@ -175,6 +175,9 @@ export class ForumState {
       top ? forums[idCategory].unshift(post.idx) : forums[idCategory].push(post.idx);
     }
 
+    /**
+     * @todo `logical error` - This code is running all the time even when it does not need to be called.
+     */
     ctx.patchState({
       forumList: forums
     });

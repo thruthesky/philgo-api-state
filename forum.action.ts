@@ -2,9 +2,9 @@ import { ApiPostSearch, ApiPost, ApiVote, ApiPostQuery, ApiComment } from '@libs
 
 export class ForumPostSearch {
   static readonly type = '[Forum] Post Search';
-
   constructor(public searchOption: ApiPostSearch) { }
 }
+
 
 export class ForumPostView {
   static readonly type = '[Forum] Post View';
@@ -21,7 +21,7 @@ export class ForumPostCreate {
 export class ForumCommentCreate {
   static readonly type = '[Forum] Comment Create';
 
-  constructor(public comment: ApiComment) {}
+  constructor(public comment: ApiComment) { }
 }
 
 export class ForumPostOrCommentUpdate {
@@ -51,5 +51,5 @@ export class ForumBookmarkSearch {
 export class ForumBookmarkUpdate {
   static readonly type = '[Forum] Bookmark Update';
 
-  constructor(public bookmarklist: string[]) {}
+  constructor(public bookmarklist: string[]) { }
 }

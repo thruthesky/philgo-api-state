@@ -63,7 +63,6 @@ export class UserState implements NgxsOnInit {
    */
   @Action(UserRegister)
   register(ctx: StateContext<ApiUserInformation>, { user }: UserRegister) {
-
     return this.a.philgo.register(user)
       .pipe(
         tap(res => {
