@@ -57,19 +57,20 @@ export class ForumState {
    * @note this is only necessary since philgo `addLogin` function is not yet fixed.
    */
   private addLogin(obj?: any) {
-    if (obj === void 0 || !obj) {
-      obj = {};
-    }
+    alert('@fix remove forum state');
+    // if (obj === void 0 || !obj) {
+    //   obj = {};
+    // }
 
-    const idx = this.a.user.idx;
-    if (idx) {
-      obj.idx_member = idx;
-    }
-    const sid = this.a.user.session_id;
-    if (sid) {
-      obj['session_id'] = sid;
-    }
-    return obj;
+    // const idx = this.a.user.idx;
+    // if (idx) {
+    //   obj.idx_member = idx;
+    // }
+    // const sid = this.a.user.session_id;
+    // if (sid) {
+    //   obj['session_id'] = sid;
+    // }
+    // return obj;
   }
 
   /**
@@ -94,7 +95,7 @@ export class ForumState {
     if (!existing) {
       post.show = false;
 
-      if (post.member && post.member.idx === this.a.user.idx) {
+      if (post.member && post.member.idx === this.a.myIdx) {
         post.mine = true;
       }
     }
@@ -312,45 +313,45 @@ export class ForumState {
    * @param post new post data.
    */
   @Action(ForumPostCreate) postCreate(ctx: StateContext<ForumStateModel>, { post }: ForumPostCreate) {
-    const idCategory = this.a.generateIdCategory(post as any);
-    post = this.addLogin(post);
-    // console.log('create post', post);
+    // const idCategory = this.a.generateIdCategory(post as any);
+    // post = this.addLogin(post);
+    // // console.log('create post', post);
 
-    return this.a.philgo.postCreate(post).pipe(
-      tap(res => {
-        // console.log(res);
-        this.addPost(ctx, res, idCategory, true);     // add to idCategory.
-        this.addToIDcategory(ctx, res, res.idx_member, true);     // add to myPosts.
-        ctx.patchState({
-          newestCreatedPost: res
-        });
-      })
-    );
+    // return this.a.philgo.postCreate(post).pipe(
+    //   tap(res => {
+    //     // console.log(res);
+    //     this.addPost(ctx, res, idCategory, true);     // add to idCategory.
+    //     this.addToIDcategory(ctx, res, res.idx_member, true);     // add to myPosts.
+    //     ctx.patchState({
+    //       newestCreatedPost: res
+    //     });
+    //   })
+    // );
   }
 
 
   @Action(ForumCommentCreate) createComment(ctx: StateContext<ForumStateModel>, { comment }: ForumCommentCreate) {
-    comment = this.addLogin(comment);
-    const index = comment['index'];
+    // comment = this.addLogin(comment);
+    // const index = comment['index'];
 
-    return this.a.philgo.commentCreate(comment).pipe(
-      tap(res => {
+    // return this.a.philgo.commentCreate(comment).pipe(
+    //   tap(res => {
 
-        const post = { ...ctx.getState().postList[res.idx_root] };
-        if (!post.comments) {
-          post.comments = [];
-        }
+    //     const post = { ...ctx.getState().postList[res.idx_root] };
+    //     if (!post.comments) {
+    //       post.comments = [];
+    //     }
 
-        if (res.depth === '1') {
-          post.comments.push(res);
-        } else {
-          post.comments.splice(index + 1, 0, res);
-        }
+    //     if (res.depth === '1') {
+    //       post.comments.push(res);
+    //     } else {
+    //       post.comments.splice(index + 1, 0, res);
+    //     }
 
-        post.inCommentEdit = post.idx;
-        this.updatePostList(ctx, post);
-      })
-    );
+    //     post.inCommentEdit = post.idx;
+    //     this.updatePostList(ctx, post);
+    //   })
+    // );
   }
 
   /**
@@ -364,30 +365,30 @@ export class ForumState {
     const post = { ...ctx.getState().postList[postOrComment.idx_parent === '0' ? postOrComment.idx : postOrComment.idx_root] };
 
 
-    // console.log(post);
-    return this.a.philgo.postUpdate(req).pipe(
-      tap(res => {
+    // // console.log(post);
+    // return this.a.philgo.postUpdate(req).pipe(
+    //   tap(res => {
 
-        /**
-         * post
-         */
-        if (postOrComment.idx_parent === '0') {
-          this.updatePostList(ctx, res);
+    //     /**
+    //      * post
+    //      */
+    //     if (postOrComment.idx_parent === '0') {
+    //       this.updatePostList(ctx, res);
 
-          /**
-           * comment
-           *
-           * `index` will always be present if we are dealing with comment.
-           */
-        } else {
-          const index = postOrComment['index'];
-          Object.assign(post.comments[index], res);
-          post.inCommentEdit = post.idx;
-          this.updatePostList(ctx, post);
-        }
+    //       /**
+    //        * comment
+    //        *
+    //        * `index` will always be present if we are dealing with comment.
+    //        */
+    //     } else {
+    //       const index = postOrComment['index'];
+    //       Object.assign(post.comments[index], res);
+    //       post.inCommentEdit = post.idx;
+    //       this.updatePostList(ctx, post);
+    //     }
 
-      })
-    );
+    //   })
+    // );
   }
 
 
@@ -400,37 +401,37 @@ export class ForumState {
   @Action(ForumPostOrCommentDelete) postOrCommentDelete(ctx: StateContext<ForumStateModel>, { postOrComment }: ForumPostOrCommentDelete) {
     const req = this.addLogin({ idx: postOrComment.idx });
 
-    return this.a.philgo.postDelete(req).pipe(
-      tap(res => {
+    // return this.a.philgo.postDelete(req).pipe(
+    //   tap(res => {
 
-        const deletedData: any = {
-          idx: `${postOrComment.idx}`,
-          subject: 'Deleted',
-          deleted: '1'
-        };
+    //     const deletedData: any = {
+    //       idx: `${postOrComment.idx}`,
+    //       subject: 'Deleted',
+    //       deleted: '1'
+    //     };
 
-        /**
-         * for post.
-         */
-        if (postOrComment.idx_parent === '0') {
-          this.updatePostList(ctx, deletedData);
+    //     /**
+    //      * for post.
+    //      */
+    //     if (postOrComment.idx_parent === '0') {
+    //       this.updatePostList(ctx, deletedData);
 
-          /**
-           * for comment.
-           *
-           * use `idx_root` since `idx_parent` can be a post idx or comment idx.
-           * `index` will always be present if we are dealing with comment.
-           */
-        } else {
-          const post = { ...ctx.getState().postList[postOrComment.idx_root] };
-          const index = postOrComment['index'];
+    //       /**
+    //        * for comment.
+    //        *
+    //        * use `idx_root` since `idx_parent` can be a post idx or comment idx.
+    //        * `index` will always be present if we are dealing with comment.
+    //        */
+    //     } else {
+    //       const post = { ...ctx.getState().postList[postOrComment.idx_root] };
+    //       const index = postOrComment['index'];
 
-          deletedData.depth = postOrComment.depth;
-          post.comments[index] = deletedData;
-          this.updatePostList(ctx, post);
-        }
-      })
-    );
+    //       deletedData.depth = postOrComment.depth;
+    //       post.comments[index] = deletedData;
+    //       this.updatePostList(ctx, post);
+    //     }
+    //   })
+    // );
   }
 
   /**
@@ -439,40 +440,40 @@ export class ForumState {
    * @param postOrComment the target being voted to, which can be a post or comment.
    */
   @Action(ForumPostOrCommentVote) postOrCommentVote(ctx: StateContext<ForumStateModel>, { vote, postOrComment }: ForumPostOrCommentVote) {
-    vote = this.addLogin(vote);
-    const postIdx = postOrComment.idx_parent === '0' ? postOrComment.idx : postOrComment.idx_root;
-    const post = { ...ctx.getState().postList[postIdx] };
+    // vote = this.addLogin(vote);
+    // const postIdx = postOrComment.idx_parent === '0' ? postOrComment.idx : postOrComment.idx_root;
+    // const post = { ...ctx.getState().postList[postIdx] };
 
-    const voteRes = {
-      good: postOrComment.good,
-      bad: postOrComment.bad
-    };
+    // const voteRes = {
+    //   good: postOrComment.good,
+    //   bad: postOrComment.bad
+    // };
 
-    return this.a.philgo.postLike(vote).pipe(
-      tap(res => {
+    // return this.a.philgo.postLike(vote).pipe(
+    //   tap(res => {
 
-        if (res.mode === 'good') {
-          voteRes.good = res.result;
-        } else {
-          voteRes.bad = res.result;
-        }
+    //     if (res.mode === 'good') {
+    //       voteRes.good = res.result;
+    //     } else {
+    //       voteRes.bad = res.result;
+    //     }
 
-        // post
-        if (postOrComment.idx_parent === '0') {
-          Object.assign(post, voteRes);
+    //     // post
+    //     if (postOrComment.idx_parent === '0') {
+    //       Object.assign(post, voteRes);
 
-          /**
-           * comment
-           *
-           * `index` will always be present if we are dealing with comment.
-           */
-        } else {
-          const index = postOrComment['index'];
-          Object.assign(post.comments[index], voteRes);
-        }
+    //       /**
+    //        * comment
+    //        *
+    //        * `index` will always be present if we are dealing with comment.
+    //        */
+    //     } else {
+    //       const index = postOrComment['index'];
+    //       Object.assign(post.comments[index], voteRes);
+    //     }
 
-        this.updatePostList(ctx, post);
-      })
-    );
+    //     this.updatePostList(ctx, post);
+    //   })
+    // );
   }
 }
